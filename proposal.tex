@@ -1,0 +1,128 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,margin=1.95cm]{geometry}
+%\usepackage{lmodern} 
+%\usepackage{mathpazo}
+%\usepackage{kpfonts}
+%\usepackage{libertine}
+%\usepackage{pxfonts}
+\usepackage{times}
+\usepackage{bm}
+%\usepackage{longtable}
+\usepackage{hyperref}
+%\usepackage[hyphenbreaks]{breakurl}
+\usepackage[super]{nth}
+%\usepackage{url}
+%\usepackage[numbers]{natbib}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+%\pagestyle{fancy}
+\usepackage{enumitem}   
+\usepackage{graphicx}
+\usepackage{comment}
+\usepackage{setspace}
+\usepackage{amsmath,amssymb,amsfonts}
+%\usepackage{amsthm}
+\let\openbox\relax
+%\usepackage{demonstration}
+\usepackage[justification=centering,singlelinecheck=false]{caption}
+\captionsetup{width=1.2\linewidth}
+
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{wrapfig}
+%\usepackage[justification=centering]{caption}
+
+\onehalfspacing
+
+\usepackage[backend=biber,style=numeric,maxbibnames=99,giveninits=true,sorting=none,style=numeric-comp]{biblatex}
+\addbibresource{references.bib}
+
+%\setlength{\bibsep}{0.0pt}
+\setlength\bibitemsep{0\itemsep}
+\AtBeginBibliography{\small}
+
+
+\newcommand{\impmark}{\strut\vadjust{\domark}}
+\newcommand{\domark}{%
+  \vbox to 0pt{
+    \kern-\dp\strutbox
+    \smash{\llap{\kern1em}}
+    \vss
+  }%
+}
+\renewbibmacro*{begentry}{\ifkeyword{ownwork}{\impmark}{}}
+
+%\usepackage{lineno}
+%\linenumbers
+
+\newcommand{\todo}[1]{{\color{blue}({\bf TODO:} #1)}}
+
+\newcommand{\new}[1]{{\color{red}{\bf (new)} #1}}
+
+\newcommand{\kiril}[2]{{\color{blue}#1}\marginpar{\color{blue}\raggedright\tiny [KS]:#2}}
+
+\newcommand{\ale}[1]{\textcolor{red}{[ #1 -- Alejandro ] \normalsize}}
+
+\input{macros}
+
+\lhead{K.\ Solovey}
+\chead{}
+\rhead{Connected Smart Mobility}
+
+\renewbibmacro{begentry}{\ifkeyword{ownwork}{\makebox[0pt][r]{\textasteriskcentered\addspace}}{}}
+
+\begin{document}
+\title{\vspace{-40pt}{\bf Moshe Buetel and Kiril Solovey}
+       \\ {%\huge 
+       GenAI-Guided Robot Planning in the Unknown} 
+}
+\date{}
+\clearpage
+\vspace{-20ex}
+\maketitle\thispagestyle{fancy}
+\thispagestyle{empty}
+\vspace{-8ex}
+
+\frenchspacing
+
+\newcommand{\reduce}{\vspace{-12pt}}
+
+% 1. Abstract
+
+%\abstract{
+%}
+
+
+\section{Introduction}
+In this project, we seek to advance 
+practical yet theory-driven approaches for robot motion planning in unknown environments. In this problem, the robot is dropped in an unknown (or partially known) environment, and needs to either move to a specified point, find a specific item, or map the whole environment, while relying on onboard computation and perception to gather information about the map as it moves along. 
+
+Previous work in this area can be divided into three categories:
+\begin{itemize}
+    \item Frontier-based planners such as D*-lite and LPA*~\cite{KOENIG200493,koenig2002d}, rely on search methods, in the spirit of A*, to efficiently (from a computational perspective) reuse information from previous iterations to guide the robot toward the target, while incorporating new information observed along the way. Specifically, those approaches assume unknown areas on the map are free and replan when the robot encounters an unexpected obstacle, through the closest known frontier point to the target. While those algorithms are widely used, they tend to behave poorly in highly cluttered environments, leading robots into dead ends. Moreover, they do not incorporate knowledge from previous environments on their own, which can hint at the structure of the current environment they are exploring. 
+    \item Recent approaches rely on various machine learning techniques to improve classical planning algorithms via map prediction~\cite{wang2025cogniplan,ElhafsiIJP20,luperto2021exploration}. Specifically, the planner's decision are made based on the predicted map structure, which allows to incorportate prior experience (i.e., in the training data) to speed execution time. However, as is often the case with learning based approaches, they can underperform in out-of-distribution settings, and lack theoretical guarantees on their performance. It should be emphasized that map prediction is particularly challenging due to the high dimensionality of the task, which can produce poor results, especially with low training data, small networks, or large maps. 
+    \item An often ignored line of work, considers a family of simplistic so-called "bug algorithms"~\cite{4389264, kamon1998tangentbug} wherein the robot executes basic strategies (e.g., wall following) to arrive to a goal location with miniamlistic capabilities in terms of sensors, computation, and memory. Importantly, the CBUG algorithm, and its generalizations~\cite{gabriely2005cbug,kramer2010multidimensional} is one of the few available algorithms that provides worst-case guarantees on the execution time, which is quadratic in the cost of the shortest optimal path (with full information). This should be contrasted with works in the previous two mentioned areas, whose worst-case performance is unbounded. E.g., the robot can overlook a short path to the target, and instead first explore an exceedingly long dead end before retracing its steps.  But, bug algorithms are not perfect either. As already mentioned, they are designed for overly simplistic robotic systems,  and so can underperform. 
+\end{itemize}
+
+In our work, we plan to leverage ideas across the three areas to develop an approach that is well motivated from a practical perspective, yet highly practical. A main ingredient in our approach will be GenAI (initially, Diffusion Models, and then advancing to LLMs and VLMs) which will be incorporated within a classical planning backbone. One direction that would be interesting to explore is leveraging those tools while using small models and limited training data (unlike map prediction). In this context, trajectory prediction, as in DiTree~\cite{hassidof2025trainonce}, can be combined with a Bug-like local decision making (traverse the next obstacle from the left or the right), while incorporating  increasing neighborhoods of exploration as in CBUG~\cite{gabriely2005cbug} to provide bounded worst-case performance. 
+
+\vspace{5pt} 
+\noindent \textbf{Specific next steps to explore:}
+\begin{itemize}
+    \item Generalizing bug-like algorithms to better exploit complex sensor data (LIDARs and cameras)
+    \item Informing decisions of bug algorithms using diffusion models.
+    \item Deriving compact yet effective models for the above task.
+    \item Maintaining bounded competitiveness guarantees.  
+\end{itemize}
+
+
+
+\printbibliography
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
