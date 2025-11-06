@@ -116,7 +116,80 @@ In our work, we plan to leverage ideas across the three areas to develop an appr
     \item Maintaining bounded competitiveness guarantees.  
 \end{itemize}
 
+\section{Research Directions and Plan}
 
+The planned research requires integrating advanced algorithmic thechniqes: Map prediction, Diffusion policy and vision-language-models. A modular plan that verifies each building block is needed before integration. The plan will therefore contain 4 phases:
+\begin{enumerate}
+    \item Formulation and Baselines
+    \item Kinodynamic aware planning (DiTree)
+    \item Map prediction based planning (CogniPlan)
+    \item Integrate VLA to planning
+\end{enumerate}
+
+\subsection*{Research Decision Point}
+The completion of Phase 2 will represent a decision point: whether to advance toward map prediction (CogniPlan) or to develop a model capable of learning immediate actions based on current observation. It should be noted that generating maps on an edge device may pose significant computational challenges.
+
+
+\subsection{Formulation and Baselines}
+This phase establishes the initial mapping system, greedy decision-making heuristic, and the kinematic motion planning baseline.
+
+\begin{itemize}
+    \item \textbf{MDP definition} - Formulate the problem including reward function and terminal states
+    \item \textbf{SLAM Baseline} - Use a known, trusted SLAM method (e.g. ORB SLAM 3 \cite{campos2021orbslam3}) to build a 3D map of an unknown indoor area using a drone equipped with an IMU and a monocular RGB camera. Control drone using random walk or manually.
+    \item \textbf{Frontier and Goal Candidate Identification Baseline} - Continuously identify frontier and extract a set of candidate locations for potential robot movement.
+    \item  \textbf{Classical Utility Function Baseline} - Define and implement a standard greedy utility function that selects the next best location by balancing distance utility and information gain utility based only on the observed map.
+    \item \textbf{Classical Motion Planning Baseline} - Implement a standard Sampling-Based Planner (e.g. RRT) to execute the chosen waypoint, ensuring adherence to Kinodynamic Motion Planning (KMP) constraints through forward action propagation.
+    Optional integrations:
+    \begin{itemize}
+        \item Effective Sampling for Robot Motion Planning Through the Lens of Lattices~\cite{PanasoffI-RSS-25}
+        \item VAMP~\cite{thomason_motions_microseconds_2024}
+    \end{itemize}
+    \item \textbf{Bug Agents} - Small "atomic" actions programmed and verified to achieve simple immediate goals (e.g. wall following, enter a room etc.)
+\end{itemize}
+
+
+\subsection{DiTree Motion Planning}
+This phase integrates Diffusion Policy GenAI (DiTree approach) to accelerate the low-level, physically constrained motion planning, independent of the mission planning graph from Phase 2.
+
+\begin{itemize}
+    \item \textbf{DiTree Integration} - Integrate the DiTree framework to guide the motion planner backbone.
+    \item \textbf{Informed Action Sampling} -  Replace the motion planner's uniform random action selection with a Diffusion Policy that serves as an informed action sampler, generating action sequences conditioned on the planning context.
+    \item \textbf{Generalization} - Generalize to Out-of-Distribution scenarios.
+\end{itemize}
+
+
+\subsection{CogniPlan Mission Planning}
+This phase develops the GenAI component for map prediction to achieve non-myopic exploration, utilizing the CogniPlan approach without relying on external language commands.
+
+\begin{itemize}
+    \item \textbf{Layout Reconstruction and Conditional Prediction} - Implement a method to reconstruct the abstract geometric layout from the observed map, modeling rooms as polygons and filtering noise. Integrate a Conditional Generative Inpainting Network (e.g. WGAN) trained to predict the unobserved map layout.
+    \item \textbf{Uncertainty Modeling} - Generate a set of multiple plausible layout predictions by varying conditional input vectors, explicitly capturing layout uncertainty. Quantify this uncertainty by calculating the average of the multiple binary predictions, which represents the average predicted probability of free areas.
+    \item \textbf{Informed Information Gain} - Refine the estimate of expected new area visible from a candidate location by projecting predicted walls from the layout onto the map. This provides a non optimistic estimate of information gain by treating predicted walls as obstacles.
+    \item  \textbf{Graph Attention Planner} - Develop a Graph Attention Network policy that utilizes an augmented graph representation. Augment graph nodes with the average predicted probability of free areas from the averaged predictions, allowing the planner to reason over global foresight and multiple layout hypotheses.
+
+\end{itemize}
+
+\subsection{Unified VLA Policy and System Evaluation}
+The final phase introduces the Vision-Language-Action framework for unified decision-making and conducts comprehensive system evaluation.
+
+\begin{itemize}
+    \item \textbf{VLA Policy Activation} - Introduce the VLA Policy Network. Encode the natural language mission goal (e.g., "Explore and map all rooms in current room") along with visual inputs, into Prefix Tokens to establish the semantic context.
+    \item \textbf{Information Fusion} - VLA policy selects global goal using CogniPlan map predictions and pass it to DiTree that plans Kinodynamic  
+    \item \textbf{Mission  Metrics Evaluation} - Sweep weights of plan method including the use of bug agents locally.
+\end{itemize}
+
+\section{Work Plan}
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Phase} & \textbf{Volume} & \textbf{Dates} \\ \hline\hline
+Formulation and Baselines & 5 weeks & December \\ \hline
+Map prediction based planning (CogniPlan) &  6 weeks & Jan.- Feb. \\ \hline
+Kinodynamic aware planning (DiTree) & 8 weeks & March-April \\ \hline
+ Integrate VLA in planning & 9 weeks & May-June \\ \hline
+\end{tabular}
+\end{center}
 
 \printbibliography
 
